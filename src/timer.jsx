@@ -1,50 +1,66 @@
 import { useState } from "react";
-import { useEffect } from "react";
+import { useRef } from "react";
 
-function StartButton({ time, startTimer, resetTimer }) {
-    if (time === 0) {
+function StartButton({ timerState, startTimer, resetTimer }) {
+    if (timerState === "stopped") {
         return <button onClick={startTimer}>Start</button>;
     } else {
         return <button onClick={resetTimer}>Reset</button>;
     }
 }
 
-function PauseButton({ time, pauseTimer }) {
-    if (time === 0) {
+function PauseButton({ timerState, pauseTimer, resumeTimer }) {
+    if (timerState === "stopped") {
         return <button disabled>Pause</button>;
     } else {
-        return <button onClick={pauseTimer}>Pause</button>;
+        if (timerState === "running")
+            return <button onClick={pauseTimer}>Pause</button>;
+        else return <button onClick={resumeTimer}>Resume</button>;
     }
 }
 
 function Timer() {
     const [time, setTime] = useState(0);
+    const [timerState, setTimerState] = useState("stopped");
+    const timer = useRef(null);
 
     function startTimer() {
-        setInterval(() => {
+        timer.current = setInterval(() => {
             setTime((time) => time + 1);
         }, 1000);
+        setTimerState("running");
     }
 
     function resetTimer() {
         setTime(0);
-        clearInterval();
+        setTimerState("stopped");
+        clearInterval(timer.current);
     }
 
     function pauseTimer() {
         setTime(time);
-        clearInterval();
+        setTimerState("paused");
+        clearInterval(timer.current);
+    }
+
+    function resumeTimer() {
+        setTimerState("running");
+        startTimer();
     }
 
     return (
         <div className="main-body">
             <div className="buttons">
                 <StartButton
-                    time={time}
+                    timerState={timerState}
                     startTimer={startTimer}
-                    resetTimer={ resetTimer}
+                    resetTimer={resetTimer}
                 />
-                <PauseButton time={time} pauseTimer={ pauseTimer } />
+                <PauseButton
+                    timerState={timerState}
+                    pauseTimer={pauseTimer}
+                    resumeTimer={resumeTimer}
+                />
             </div>
             <div className="timer">{time}</div>
         </div>
